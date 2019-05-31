@@ -1,0 +1,53 @@
+// prob2events.hoc
+// This is a diagnostic program which prints a table that relates the Breath (or Stimulus) peak rates to
+// an average firing rate by integrating the inhomogeneous poisson rate over one (400 ms) breath cycle
+// using the standard parameters that were run in our simulations;
+//
+load_file("gen_events.hoc")
+gauss_half_width = 30 // ms
+tstop =400 // diagnostic time
+period= 400
+gauss_center = 0
+
+objref g
+g = new Graph()
+objref time_vec
+
+objref inhomog_poiss_rate
+
+objref store_gauss_peaks, store_ave_num_of_spikes, store_ave_fr
+store_gauss_peaks = new Vector()
+store_ave_num_of_spikes = new Vector()
+store_ave_fr = new Vector()
+
+for (gauss_peak = 20; gauss_peak <= 760; gauss_peak = gauss_peak + 20) {
+inhomog_poiss_rate = gen_poisson(tstop, period, gauss_center, gauss_half_width, gauss_peak)
+
+dt_in_secs = dt/1000
+ave_num_of_spikes = 0
+for time_index = 0, inhomog_poiss_rate.size()-1 {
+ ave_num_of_spikes = ave_num_of_spikes + inhomog_poiss_rate.x[time_index] * dt_in_secs
+}
+ave_fr = ave_num_of_spikes/(period/1000)
+
+store_gauss_peaks.append(gauss_peak)
+store_ave_num_of_spikes.append(ave_num_of_spikes)
+store_ave_fr.append(ave_fr)
+
+// print gauss_peak, ", ", ave_num_of_spikes, ", ", ave_fr
+
+time_vec=new Vector(inhomog_poiss_rate.size())
+time_vec.indgen(dt)
+
+// sample graphs of poisson rate
+inhomog_poiss_rate.line(g,time_vec)
+g.exec_menu("View = plot")
+}
+
+print "table of"
+print "gauss_peak, ave num of spikes, ave fr"
+
+for i=0, store_ave_fr.size()-1 {
+  print store_gauss_peaks.x[i],", ", store_ave_num_of_spikes.x[i],", ", store_ave_fr.x[i]
+}
+
